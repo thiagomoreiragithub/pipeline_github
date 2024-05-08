@@ -1,0 +1,50 @@
+name: Build main
+on:
+  workflow_dispatch:
+    inputs:
+      Teste:
+        description: "Caixa de teste"
+        type: string
+
+  pull_request:
+    branches: [main]
+
+env:
+  FLUTTER_BUILD_MODE: release
+
+jobs:
+  build:
+    name: Gerar APK e IPA
+    runs-on: macos-latest
+    steps:
+      - name: informações
+        run: |
+          echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event.";
+          echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+          echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+          echo "${{github.env.FLUTTER_BUILD_MODE}}"
+          echo "${{inputs.Teste}}"
+
+      - name: Checkout da versão
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.19.0
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build IPA
+        run: flutter build ios --release --no-codesign
